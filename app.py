@@ -20,13 +20,13 @@ height = st.number_input("Height (cm)", min_value=50.0, max_value=250.0)
 goal = st.selectbox("Goal", ["Weight Loss", "Weight Gain", "Weight Maintain"])
 diet_type = st.selectbox("Diet Type", ["Veg", "Vegan", "Non-Veg"])
 
-# Recommend meals only if all fields are filled
+# Proceed only if user enters all info
 if name and age and weight and height:
 
-    # Normalize diet type filtering
+    # Filter by diet type (case-insensitive)
     filtered = food_df[food_df['Diet Type'].str.strip().str.lower() == diet_type.strip().lower()]
 
-    # Goal-based calorie filtering
+    # Apply goal-based calorie filtering
     if goal == "Weight Loss":
         goal_df = filtered[filtered["Calories"] < 250]
     elif goal == "Weight Gain":
@@ -34,17 +34,13 @@ if name and age and weight and height:
     else:  # Weight Maintain
         goal_df = filtered[(filtered["Calories"] >= 250) & (filtered["Calories"] <= 400)]
 
-    # Safe sampling
-    if len(goal_df) >= 3:
-        meals = goal_df.sample(3)
-    elif len(goal_df) > 0:
-        meals = goal_df
+    # Display based on how many results are available
+    if goal_df.empty:
+        st.warning("⚠️ No meals found. Try changing the goal or diet type.")
     else:
-        meals = pd.DataFrame()
-
-    # Display results
-    if not meals.empty:
-        st.subheader("🍽️ Recommended Meals:")
-        st.table(meals.reset_index(drop=True))
-    else:
-        st.warning("⚠️ No matching meals found. Try changing your goal or diet type.")
+        try:
+            meals = goal_df.sample(n=3) if len(goal_df) >= 3 else goal_df
+            st.subheader("🍽️ Recommended Meals:")
+            st.table(meals.reset_index(drop=True))
+        except:
+            st.error("⚠️ Error while sampling meals. Please check your data.")
