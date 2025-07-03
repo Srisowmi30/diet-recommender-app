@@ -25,7 +25,7 @@ diet_type = st.selectbox("Diet Type", ["Veg", "Vegan", "Non-Veg"])
 # Proceed only if inputs are filled
 if name and age and weight and height:
 
-    # Filter by diet type (your CSV uses 'Type' column)
+    # Filter by diet type
     filtered_df = food_df[
         food_df["Type"].str.strip().str.lower() == diet_type.strip().lower()
     ]
@@ -35,7 +35,7 @@ if name and age and weight and height:
         goal_df = filtered_df[filtered_df["Calories"] < 250]
     elif goal == "Weight Gain":
         goal_df = filtered_df[filtered_df["Calories"] > 400]
-    else:
+    else:  # Maintain
         goal_df = filtered_df[
             (filtered_df["Calories"] >= 250) & (filtered_df["Calories"] <= 400)
         ]
@@ -44,10 +44,15 @@ if name and age and weight and height:
     st.subheader("🍽️ Recommended Meals:")
 
     if goal_df.empty:
-        st.warning("⚠️ No meals match your selection. Try changing your goal or diet type.")
+        st.warning("⚠️ No matching meals found for your selection.")
     else:
-        if len(goal_df) >= 3:
-            st.table(goal_df.sample(3, random_state=1).reset_index(drop=True))
-        else:
-            st.info(f"Only {len(goal_df)} meals available. Showing all.")
-            st.table(goal_df.reset_index(drop=True))
+        try:
+            unique_rows = goal_df.drop_duplicates()
+            if len(unique_rows) >= 3:
+                st.table(unique_rows.sample(3, random_state=1).reset_index(drop=True))
+            else:
+                st.info(f"Only {len(unique_rows)} meals available. Showing all.")
+                st.table(unique_rows.reset_index(drop=True))
+        except Exception as e:
+            st.error("❌ Error while selecting meals.")
+            st.exception(e)
