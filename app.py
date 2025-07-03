@@ -1,58 +1,50 @@
 import streamlit as st
 import pandas as pd
+import random
 
-# Load the dataset
+# 1. Load the CSV
 try:
     food_df = pd.read_csv("food_data.csv")
 except Exception as e:
-    st.error("❌ Could not load 'food_data.csv'. Please check the file format.")
+    st.error("❌ Could not load the CSV file. Please check the file and its columns.")
     st.stop()
 
-# Clean column names
+# 2. Clean columns
 food_df.columns = food_df.columns.str.strip().str.title()
 
 st.title("🥗 Personalized Diet Recommender")
 
-# Inputs
+# 3. User Inputs
 name = st.text_input("Enter your name:")
 age = st.number_input("Age", min_value=1, max_value=120)
 weight = st.number_input("Weight (kg)", min_value=1.0)
 height = st.number_input("Height (cm)", min_value=50.0)
-
 goal = st.selectbox("Goal", ["Weight Loss", "Weight Gain", "Weight Maintain"])
 diet_type = st.selectbox("Diet Type", ["Veg", "Vegan", "Non-Veg"])
 
-# Proceed only if inputs are filled
+# Proceed only if all fields are filled
 if name and age and weight and height:
+    # 4. Filter by Diet Type
+    filtered_df = food_df[food_df["Type"].str.strip().str.lower() == diet_type.lower().strip()]
 
-    # Filter by diet type
-    filtered_df = food_df[
-        food_df["Type"].str.strip().str.lower() == diet_type.strip().lower()
-    ]
-
-    # Apply calorie filter based on goal
+    # 5. Filter by goal
     if goal == "Weight Loss":
         goal_df = filtered_df[filtered_df["Calories"] < 250]
     elif goal == "Weight Gain":
         goal_df = filtered_df[filtered_df["Calories"] > 400]
-    else:  # Maintain
+    else:
         goal_df = filtered_df[
             (filtered_df["Calories"] >= 250) & (filtered_df["Calories"] <= 400)
         ]
 
-    # Show meal suggestions
-    st.subheader("🍽️ Recommended Meals:")
+    # 6. Convert DataFrame rows to list of dicts
+    meals_list = goal_df.to_dict(orient="records")
 
-    if goal_df.empty:
-        st.warning("⚠️ No matching meals found for your selection.")
+    # 7. Safe sampling via Python
+    st.subheader("🍽️ Recommended Meals:")
+    if len(meals_list) == 0:
+        st.warning("⚠️ No matching meals found. Try a different combination.")
     else:
-        try:
-            unique_rows = goal_df.drop_duplicates()
-            if len(unique_rows) >= 3:
-                st.table(unique_rows.sample(3, random_state=1).reset_index(drop=True))
-            else:
-                st.info(f"Only {len(unique_rows)} meals available. Showing all.")
-                st.table(unique_rows.reset_index(drop=True))
-        except Exception as e:
-            st.error("❌ Error while selecting meals.")
-            st.exception(e)
+        # Choose up to 3 meals
+        selected = random.sample(meals_list, k=min(3, len(meals_list)))
+        st.table(pd.DataFrame(selected))
