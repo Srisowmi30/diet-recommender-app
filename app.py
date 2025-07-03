@@ -14,6 +14,9 @@ height = st.number_input("Height (cm)", min_value=100.0)
 goal = st.selectbox("Goal", ["Weight Loss", "Weight Gain", "Maintain"])
 diet_type = st.selectbox("Diet Type", ["Veg", "Non-Veg", "Vegan"])
 
+import os
+st.write("📁 Files in current directory:", os.listdir())
+
 # Load dataset
 try:
     food_df = pd.read_csv("food_data.csv")
