@@ -26,36 +26,41 @@ if name and age and weight and height:
 
     # Filter by Diet Type (case-insensitive match)
     # Normalize column names
+    # Normalize column names
+# Normalize column names
     food_df.columns = food_df.columns.str.strip().str.title()
 
-# Filter by Diet Type (column is actually 'Type' in your CSV)
-filtered_df = food_df[food_df['Type'].str.strip().str.lower() == diet_type.strip().lower()]
+# Filter by Diet Type (your column is 'Type')
+filtered_df = food_df[
+    food_df["Type"].str.strip().str.lower() == diet_type.strip().lower()
+]
 
-# Show debug info
-st.write("🔍 Filtered rows:", filtered_df.shape[0])
+# Debug info
+st.write("✅ Filtered by Diet Type:", filtered_df.shape[0])
 
-# Filter based on goal
+# Apply goal-based calorie filtering
 if goal == "Weight Loss":
     goal_df = filtered_df[filtered_df["Calories"] < 250]
 elif goal == "Weight Gain":
     goal_df = filtered_df[filtered_df["Calories"] > 400]
-else:
+else:  # Maintain
     goal_df = filtered_df[(filtered_df["Calories"] >= 250) & (filtered_df["Calories"] <= 400)]
 
-st.write("🎯 Rows after goal filter:", goal_df.shape[0])
+# Debug info
+st.write("🎯 Meals after Goal filter:", goal_df.shape[0])
 
-# Safe meal sampling
+# Safely show meals
 try:
-    if goal_df.empty or goal_df.shape[0] == 0:
-        st.warning("⚠️ No meals found. Try changing your goal or diet type.")
+    if goal_df.empty:
+        st.warning("⚠️ No matching meals found for your selected diet and goal.")
     elif goal_df.shape[0] < 3:
         st.info(f"Only {goal_df.shape[0]} meals found. Showing all available meals.")
         st.subheader("🍽️ Recommended Meals:")
         st.table(goal_df.reset_index(drop=True))
     else:
-        meals = goal_df.sample(n=3, replace=False, random_state=42)
+        meals = goal_df.sample(n=3, random_state=42)
         st.subheader("🍽️ Recommended Meals:")
         st.table(meals.reset_index(drop=True))
 except Exception as e:
-    st.error("❌ An error occurred while selecting meals.")
+    st.error("❌ Error while selecting meals.")
     st.exception(e)
