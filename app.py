@@ -25,9 +25,8 @@ diet_type = st.selectbox("Diet Type", ["Veg", "Vegan", "Non-Veg"])
 if name and age and weight and height:
 
     # Filter by Diet Type (case-insensitive match)
-    filtered_df = food_df[
-        food_df["Diet Type"].str.strip().str.lower() == diet_type.strip().lower()
-    ]
+    filtered_df = food_df[food_df['Type'].str.strip().str.lower() == diet_type.strip().lower()]
+
 
     # Filter based on goal
     if goal == "Weight Loss":
