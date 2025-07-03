@@ -15,7 +15,6 @@ goal = st.selectbox("Goal", ["Weight Loss", "Weight Gain", "Maintain"])
 diet_type = st.selectbox("Diet Type", ["Veg", "Non-Veg", "Vegan"])
 
 import os
-st.write("📁 Files in current directory:", os.listdir())
 
 # Load dataset
 try:
@@ -31,7 +30,8 @@ if st.button("Generate Plan"):
 
         st.subheader("🍱 Recommended Meals:")
         # Simple filtering based on diet type
-        filtered = food_df[food_df['Type'] == diet_type]
+        filtered = food_df[food_df['Diet Type'].str.strip().str.lower() == diet_type.strip().lower()]
+
         if goal == "Weight Loss":
             meals = filtered[filtered['Calories'] < 250].sample(3)
         elif goal == "Weight Gain":
