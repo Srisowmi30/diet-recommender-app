@@ -20,29 +20,28 @@ height = st.number_input("Height (cm)", min_value=50.0, max_value=250.0)
 goal = st.selectbox("Goal", ["Weight Loss", "Weight Gain", "Weight Maintain"])
 diet_type = st.selectbox("Diet Type", ["Veg", "Vegan", "Non-Veg"])
 
-# Proceed only if all inputs are filled
+# Only run if all fields are filled
 if name and age and weight and height:
 
-    # Normalize and filter by diet type
-    filtered_df = food_df[food_df['Diet Type'].str.strip().str.lower() == diet_type.strip().lower()]
+    # Filter by Diet Type (case-insensitive)
+    filtered = food_df[food_df['Diet Type'].str.strip().str.lower() == diet_type.strip().lower()]
 
-    # Apply calorie filters based on goal
+    # Filter based on Goal
     if goal == "Weight Loss":
-        goal_df = filtered_df[filtered_df["Calories"] < 250]
+        goal_df = filtered[filtered['Calories'] < 250]
     elif goal == "Weight Gain":
-        goal_df = filtered_df[filtered_df["Calories"] > 400]
-    else:  # Weight Maintain
-        goal_df = filtered_df[(filtered_df["Calories"] >= 250) & (filtered_df["Calories"] <= 400)]
+        goal_df = filtered[filtered['Calories'] > 400]
+    else:  # Maintain
+        goal_df = filtered[(filtered['Calories'] >= 250) & (filtered['Calories'] <= 400)]
 
-    # Show recommended meals only if something is found
+    # Check if anything found
     if goal_df.empty:
-        st.warning("⚠️ No matching meals found. Try changing your goal or diet type.")
+        st.warning("⚠️ No meals found. Try changing your goal or diet type.")
     else:
-        # Safe sampling
-        if len(goal_df) >= 3:
-            meals = goal_df.sample(3)
-        else:
-            meals = goal_df  # show whatever is available
-
-        st.subheader("🍽️ Recommended Meals:")
-        st.table(meals.reset_index(drop=True))
+        # Only sample if enough rows exist
+        try:
+            meals = goal_df.sample(3) if len(goal_df) >= 3 else goal_df
+            st.subheader("🍽️ Recommended Meals:")
+            st.table(meals.reset_index(drop=True))
+        except Exception as e:
+            st.error(f"An error occurred while selecting meals: {e}")
